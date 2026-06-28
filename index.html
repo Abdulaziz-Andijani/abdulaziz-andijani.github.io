@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Abdulaziz Andijani</title></head><body><script>
 (async()=>{
-  const files=["assets/index.00.b64","assets/index.01.b64","assets/index.02.b64","assets/index.03.b64"];
+  const files=["assets/index.00.b64?v=53ff017","assets/index.01.b64?v=53ff017","assets/index.02.b64?v=53ff017","assets/index.03.b64?v=53ff017"];
   const b64=(await Promise.all(files.map(f=>fetch(f).then(r=>r.text())))).join("");
   const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
   const first=new TextDecoder().decode(bytes);
