@@ -1,10 +1,49 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Abdulaziz Andijani</title></head><body><script>
 (async()=>{
-  const files=["assets/index.00.b64","assets/index.01.b64","assets/index.02.b64","assets/index.03.b64","assets/index.04.b64","assets/index.05.b64"];
+  const files=["assets/index.00.b64","assets/index.01.b64","assets/index.02.b64","assets/index.03.b64"];
   const b64=(await Promise.all(files.map(f=>fetch(f).then(r=>r.text())))).join("");
   const bytes=Uint8Array.from(atob(b64),c=>c.charCodeAt(0));
+  const first=new TextDecoder().decode(bytes);
+  const tail=`
+          <div class="video-meta">
+            <div class="video-title">Podcast Rotani — Episode</div>
+            <div class="video-sub">Rotana · 2024</div>
+          </div>
+        </div>
+        <div class="video-card add-card">
+          <div class="add-card-icon">＋</div>
+          <span>Add your video IDs<br>in the HTML</span>
+        </div>
+      </div>
+      <div class="carousel-dots" id="dots-pod"></div>
+    </div>
+  </div>
+</section>
+<style>.reveal{opacity:1!important;transform:none!important}</style>
+<section id="contact">
+  <div class="section-label">Contact</div>
+  <div class="contact-layout">
+    <div class="contact-cta">
+      <h3>Open to new<br>opportunities.</h3>
+      <p>If you're looking for a senior editor who can own a post-production pipeline — from storyboard to final master — let's talk.</p>
+      <a href="mailto:abdulaziz.andijani@rotana.net" class="btn-primary">Send an Email</a>
+    </div>
+    <div class="contact-info">
+      <div class="contact-row"><span class="contact-row-label">Email</span><a href="mailto:abdulaziz.andijani@rotana.net" class="contact-row-val">abdulaziz.andijani@rotana.net</a></div>
+      <div class="contact-row"><span class="contact-row-label">Phone</span><a href="tel:+966592242123" class="contact-row-val">+966 59 224 2123</a></div>
+      <div class="contact-row"><span class="contact-row-label">Location</span><span class="contact-row-val">Ad Diriyah, Riyadh — Saudi Arabia</span></div>
+      <div class="contact-row"><span class="contact-row-label">Portfolio</span><a href="https://abdulazizandijani.myportfolio.com" target="_blank" class="contact-row-val">abdulazizandijani.myportfolio.com</a></div>
+      <div class="contact-row"><span class="contact-row-label">LinkedIn</span><a href="https://linkedin.com/in/abdulaziz-andijani" target="_blank" class="contact-row-val">linkedin.com/in/abdulaziz-andijani</a></div>
+    </div>
+  </div>
+</section>
+<footer>
+  <span class="footer-copy">© 2025 Abdulaziz Andijani</span>
+  <ul class="footer-links"><li><a href="https://abdulazizandijani.myportfolio.com" target="_blank">Portfolio</a></li><li><a href="https://linkedin.com/in/abdulaziz-andijani" target="_blank">LinkedIn</a></li><li><a href="mailto:abdulaziz.andijani@rotana.net">Email</a></li></ul>
+</footer>
+</body></html>`;
   document.open();
-  document.write(new TextDecoder().decode(bytes));
+  document.write(first+tail);
   document.close();
 })();
 </script></body></html>
