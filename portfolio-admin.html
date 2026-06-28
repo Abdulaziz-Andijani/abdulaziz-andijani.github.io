@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Portfolio Admin — Abdulaziz Andijani</title>
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:#f5f4f1;color:#111110;margin:0;padding:24px;line-height:1.6}main{max-width:760px;margin:auto}.card{background:#fff;border:1px solid #e0deda;border-radius:8px;padding:20px;margin:18px 0}label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#5a5a56;margin-top:12px}input,select,textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #e0deda;border-radius:5px;font:inherit}button{margin-top:14px;padding:11px 18px;border:0;border-radius:5px;background:#111110;color:#f5f4f1;font-weight:600;cursor:pointer}pre{white-space:pre-wrap;background:#111110;color:#a8e6a3;padding:16px;border-radius:6px;overflow:auto}.top{display:flex;justify-content:space-between;gap:12px;align-items:center}a{color:#8a6f38}</style>
+</head>
+<body>
+<main>
+<div class="top"><h1>Portfolio Admin</h1><a href="index.html">Open portfolio</a></div>
+<p>Use this page to generate a video card, then paste it into the matching carousel inside <code>index.html</code>.</p>
+<div class="card">
+<label>YouTube video ID</label><input id="yt" placeholder="Example: dQw4w9WgXcQ">
+<label>Title</label><input id="title" placeholder="Project title">
+<label>Subtitle</label><input id="sub" placeholder="Artist · Year">
+<label>Category</label><select id="cat"><option value="music">Music Videos</option><option value="biz">Business Promos</option><option value="reels">Social Media Reels</option><option value="pod">Interviews & Podcasts</option></select>
+<button onclick="gen()">Generate code</button>
+</div>
+<div class="card"><pre id="out">Generated code will appear here.</pre><button onclick="copyCode()">Copy</button></div>
+</main>
+<script>
+function esc(s){return s.replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function gen(){const yt=ytId(),t=esc(title.value),s=esc(sub.value),c=cat.value;if(!yt||!t){out.textContent='Fill YouTube ID and title first.';return}out.textContent=`<!-- Paste before the add-card inside carousel-${c} -->\n<div class="video-card" data-yt="${yt}">\n  <div class="video-thumb">\n    <img src="https://img.youtube.com/vi/${yt}/mqdefault.jpg" alt="${t}" loading="lazy">\n    <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div></div>\n    <iframe allow="autoplay; encrypted-media" allowfullscreen></iframe>\n  </div>\n  <div class="video-meta">\n    <div class="video-title">${t}</div>\n    <div class="video-sub">${s}</div>\n  </div>\n</div>`}
+function ytId(){let v=document.getElementById('yt').value.trim();try{const u=new URL(v);if(u.searchParams.get('v'))return u.searchParams.get('v');if(u.pathname.includes('/shorts/'))return u.pathname.split('/shorts/')[1].split('/')[0]}catch(e){}return v}
+function copyCode(){navigator.clipboard.writeText(out.textContent)}
+</script>
+</body>
+</html>
