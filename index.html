@@ -679,6 +679,109 @@
     transform: none;
   }
 
+  /* ── LIGHTBOX ── */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 64px 24px 32px;
+    background: rgba(10,10,9,0.94);
+    backdrop-filter: blur(4px);
+  }
+
+  .lightbox.open { display: flex; }
+
+  .lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(245,244,241,0.2);
+    background: rgba(245,244,241,0.08);
+    color: var(--white);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .lightbox-close:hover { background: rgba(245,244,241,0.18); }
+
+  .lightbox-stage {
+    width: min(90vw, 900px);
+    max-height: 60vh;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 4px;
+    overflow: hidden;
+    flex-shrink: 1;
+  }
+
+  .lightbox-stage iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  .lightbox-meta {
+    color: var(--white);
+    text-align: center;
+  }
+
+  .lightbox-title {
+    font-family: var(--serif);
+    font-size: 18px;
+  }
+
+  .lightbox-sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(245,244,241,0.6);
+    margin-top: 4px;
+    letter-spacing: 0.06em;
+  }
+
+  .lightbox-filmstrip {
+    display: flex;
+    gap: 10px;
+    width: min(90vw, 900px);
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .lightbox-filmstrip::-webkit-scrollbar { display: none; }
+
+  .filmstrip-item {
+    flex: 0 0 110px;
+    aspect-ratio: 16/9;
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: pointer;
+    opacity: 0.45;
+    border: 2px solid transparent;
+    transition: opacity 0.2s, border-color 0.2s;
+    background: var(--ink);
+  }
+
+  .filmstrip-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .filmstrip-item.active { opacity: 1; border-color: var(--accent); }
+  .filmstrip-item:hover { opacity: 0.8; }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     nav { padding: 16px 24px; }
@@ -775,6 +878,16 @@
   <ul class="footer-links"><li><a href="https://abdulazizandijani.myportfolio.com" target="_blank">Portfolio</a></li><li><a href="https://linkedin.com/in/abdulaziz-andijani" target="_blank">LinkedIn</a></li><li><a href="mailto:abdulaziz.andijani@rotana.net">Email</a></li></ul>
 </footer>
 
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" aria-label="Close">&times;</button>
+  <div class="lightbox-stage" id="lightbox-stage"></div>
+  <div class="lightbox-meta">
+    <div class="lightbox-title" id="lightbox-title"></div>
+    <div class="lightbox-sub" id="lightbox-sub"></div>
+  </div>
+  <div class="lightbox-filmstrip" id="lightbox-filmstrip"></div>
+</div>
+
 <script>
 (() => {
   const DRIVE_CONFIG = {
@@ -821,7 +934,6 @@
       <div class="video-thumb">
         ${file.thumbnailLink ? `<img src="${file.thumbnailLink}" alt="${escapeHtml(title)}" loading="lazy" onerror="this.remove()">` : ''}
         <div class="play-btn"><div class="play-circle"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"></polygon></svg></div></div>
-        <iframe allow="autoplay" allowfullscreen></iframe>
       </div>
       <div class="video-meta">
         <div class="video-title">${escapeHtml(title)}</div>
@@ -910,25 +1022,77 @@
     });
   }
 
-  function playCard(card) {
-    const thumb = card.querySelector('.video-thumb');
-    const iframe = card.querySelector('iframe');
-    if (!thumb || !iframe || thumb.classList.contains('playing')) return;
+  // ── LIGHTBOX ──
+  const lightboxEl = document.getElementById('lightbox');
+  const lightboxStage = document.getElementById('lightbox-stage');
+  const lightboxFilmstrip = document.getElementById('lightbox-filmstrip');
+  const lightboxTitle = document.getElementById('lightbox-title');
+  const lightboxSub = document.getElementById('lightbox-sub');
+  let lbCards = [];
+  let lbIndex = 0;
+
+  function embedUrlFor(card) {
     const driveId = card.dataset.driveId;
     const yt = card.dataset.yt;
-    if (driveId) {
-      iframe.src = `https://drive.google.com/file/d/${driveId}/preview`;
-    } else if (yt && !yt.startsWith('YOUR_VIDEO_ID')) {
-      iframe.src = `https://www.youtube.com/embed/${yt}?autoplay=1&rel=0`;
-    } else {
-      return;
-    }
-    thumb.classList.add('playing');
+    if (driveId) return `https://drive.google.com/file/d/${driveId}/preview`;
+    if (yt && !yt.startsWith('YOUR_VIDEO_ID')) return `https://www.youtube.com/embed/${yt}?autoplay=1&rel=0`;
+    return '';
+  }
+
+  function showLightboxIndex(i) {
+    if (!lbCards.length) return;
+    lbIndex = (i + lbCards.length) % lbCards.length;
+    const card = lbCards[lbIndex];
+    const src = embedUrlFor(card);
+    lightboxStage.innerHTML = src
+      ? `<iframe src="${src}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
+      : '';
+    lightboxTitle.textContent = card.querySelector('.video-title')?.textContent || '';
+    lightboxSub.textContent = card.querySelector('.video-sub')?.textContent || '';
+    [...lightboxFilmstrip.children].forEach((el, idx) => el.classList.toggle('active', idx === lbIndex));
+    lightboxFilmstrip.children[lbIndex]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  function openLightbox(cards, index) {
+    lbCards = cards;
+    lightboxFilmstrip.innerHTML = '';
+    cards.forEach((card, i) => {
+      const thumbSrc = card.querySelector('.video-thumb img')?.src || '';
+      const item = document.createElement('div');
+      item.className = 'filmstrip-item';
+      if (thumbSrc) item.innerHTML = `<img src="${thumbSrc}" alt="">`;
+      item.addEventListener('click', () => showLightboxIndex(i));
+      lightboxFilmstrip.appendChild(item);
+    });
+    showLightboxIndex(index);
+    lightboxEl.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightboxStage.innerHTML = ''; // stop playback
+    lightboxEl.classList.remove('open');
+    document.body.style.overflow = '';
   }
 
   document.addEventListener('click', e => {
+    if (e.target.closest('.lightbox-close') || e.target === lightboxEl) {
+      closeLightbox();
+      return;
+    }
     const card = e.target.closest('.video-card:not(.add-card)');
-    if (card) playCard(card);
+    if (!card) return;
+    const carousel = card.closest('.carousel');
+    if (!carousel) return;
+    const cards = [...carousel.querySelectorAll('.video-card:not(.add-card)')];
+    openLightbox(cards, cards.indexOf(card));
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!lightboxEl.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowRight') showLightboxIndex(lbIndex + 1);
+    if (e.key === 'ArrowLeft') showLightboxIndex(lbIndex - 1);
   });
 
   function setupDots(carousel) {
